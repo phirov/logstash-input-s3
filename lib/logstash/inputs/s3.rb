@@ -155,6 +155,7 @@ class LogStash::Inputs::S3 < LogStash::Inputs::Base
   #
   # @param [Queue] Where to push the event
   # @param [String] Which file to read from
+  # @param [String] What the object's key is
   # @return [Boolean] True if the file was completely read, false otherwise.
   def process_local_log(queue, filename, key)
     @logger.debug('Processing file', :filename => filename)
@@ -187,6 +188,14 @@ class LogStash::Inputs::S3 < LogStash::Inputs::Base
           event.set("cloudfront_version", metadata[:cloudfront_version]) unless metadata[:cloudfront_version].nil?
           event.set("cloudfront_fields", metadata[:cloudfront_fields]) unless metadata[:cloudfront_fields].nil?
 
+          # This question was marked many times from below list, but no official solution.
+          # 1. http://stackoverflow.com/questions/20512416/adding-tags-to-logstash-events-based-on-the-md5-of-the-filename
+          # 2. http://stackoverflow.com/questions/24566122/logstash-how-to-use-filter-to-match-filename-when-using-s3
+          # 3. http://stackoverflow.com/questions/24613281/extracting-fields-from-aws-s3-input-paths-in-logstash
+          # 4. http://stackoverflow.com/questions/35762625/logstash-config-s3-filenames
+          #
+          # This solution is based on pmanwatkar's github repository
+          # https://github.com/pmanwatkar/logstash-input-s3/tree/pmanwatkar/enableS3ObjectKeyPath
           event.set("filename", key)
 
           queue << event
